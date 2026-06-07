@@ -15,7 +15,7 @@
 ├── AGENTS.md                     # 本指引
 ├── README.md                     # 项目入口
 ├── .harness/                     # AI 工程约束体系（见下）
-│   └── changes/phase-1-mvp/      # 第一期需求变更：PRD.md（需求基线）+ api-integration.md + presentation-outline.md
+│   └── changes/phase-1-mvp/      # 第一期变更：PRD.md · backend/spec.md · frontend/spec.md（暂缓）· api-integration.md · presentation-outline.md
 ├── requirements.txt              # 依赖（计划栈）
 └── .env.example                  # 环境变量模板
 # 实现按需求基线 + harness 流程产出：src/ web/ tests/ app.py（待建）
@@ -31,7 +31,7 @@
 | `roles/` | 角色 prompt：`planner` / `analyst` / `implementer` / `reviewer`（评审须独立 agent 执行） |
 | `playbooks/` | 风险分级流程：`L0-trivial` … `L3-high-risk`——接到任务先按风险层选 playbook |
 | `sensors/` | 机械化校验脚本（`check-all.sh` 等）；任何时候可跑 |
-| `changes/phase-1-mvp/` | **第一期需求变更**：`PRD.md`（唯一需求基线）+ `api-integration.md`（数据源接入）+ `presentation-outline.md` |
+| `changes/phase-1-mvp/` | **第一期需求变更**：`PRD.md`（需求基线）· `backend/spec.md` · `frontend/spec.md`（暂缓）· `api-integration.md`（数据源接入）· `presentation-outline.md` |
 | `changes/_template/` | 变更模板：PRD / design / risk-assessment / review-packet / rollback / acceptance-report |
 | `feedback/` | 评审反馈与豁免（waivers） |
 | `changelog.md` / `manifest.yaml` | 变更记录与生成清单 |

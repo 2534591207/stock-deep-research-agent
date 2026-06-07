@@ -1,6 +1,6 @@
 # Spec — phase-1-mvp（后端）
 
-> 变更：`phase-1-mvp` · 依据：同目录 [`PRD.md`](PRD.md)（已封版，本 spec 不改其规则）
+> 变更：`phase-1-mvp` · 依据：[`../PRD.md`](../PRD.md)（已封版，本 spec 不改其规则）· 前端见 [`../frontend/spec.md`](../frontend/spec.md)
 > 范围：**后端（FastAPI）优先**；前端暂缓（仅约定 API 契约，任何客户端可驱动全流程）
 > 角色分工铁律（PRD 原则一/二）：**量化指标由代码确定性计算，模型只理解/解释/提取；不算指标、不编造概率、不断言因果。**
 
@@ -249,4 +249,4 @@ MARKETS = { "US": { catalog, market_data_provider, news_provider, filings_provid
 - **API 端到端**：用固定 query 跑 `POST → GET → report`，断言 §12 的 A/D/E。
 - **演示夹具**：NVDA/BABA/INTC 的固定 query + 期望事实（公司身份、日期、算出的指标），作"能稳定复现"的回归集（PRD §17）。
 
-任务级拆解见 [`tasks.md`](tasks.md)。
+任务拆解在 design 阶段之后产出。
