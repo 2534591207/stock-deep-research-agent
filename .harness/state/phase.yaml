@@ -2,8 +2,8 @@
 # Tracks the current workflow phase. Updated by agents as work progresses.
 # Valid phases: idle | classify | prd | design | build | verify | close
 
-phase: idle
-tier: null          # L0 | L1 | L2 | L3 — set during classify phase
-change_name: null   # short name of active change directory, e.g. "add-pagination-20260516"
-updated_at: null    # ISO-8601 timestamp of last update
-updated_by: null    # agent or human who last updated this file
+phase: design
+tier: L2
+change_name: phase-1-mvp
+updated_at: 2026-06-07T16:08:07Z
+updated_by: claude (phase-1-mvp design hardening, awaiting independent re-review)

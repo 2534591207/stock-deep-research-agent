@@ -78,7 +78,11 @@
 - AC-22 _Given_ 已完成研究并生成报告 _When_ 上传属于某公司的 PDF/TXT/MD _Then_ 分析并归属、更新相关结论、生成新报告版本，不重复请求不必要的行情。
 - AC-23 _Given_ 完成一次研究后手动 `compress_conversation()`（删早期 raw messages，只留 summary+workspace+assets，见 plan §8.5）_When_ 再问"研究哪几家 / 时间范围 / 阿里第二条风险 / 更新报告" _Then_ 答案来自**结构化会话状态**、不依赖完整聊天记录；**不可丢字段清单见 plan §8.5**。
 - AC-24 _Given_ 会话多次生成报告 _When_ "更新刚才的报告"或"上一版报告里那条风险" _Then_ 区分当前版本与历史版本、引用正确内容（经 `GET /reports` 列版本、`GET /reports/{report_id}` 取指定版本验证；`RunState` 含 `active_report_id`/`report_versions`）。
-- AC-25 _Given_ 会话已生成多个报告版本 _When_ `GET /api/research/{id}/reports` 与 `GET .../reports/{report_id}?format=markdown` _Then_ 能列出版本并取到指定历史版本，`active_report_id` 正确指向当前版本。
+- AC-25 _Given_ 会话已生成多个报告版本 _When_ `GET /api/research/{id}/reports` 与 `GET .../reports/{report_id}?format=markdown` _Then_ 能列出版本并取到指定历史版本，`active_report_id` 正确指向当前版本（历史版本不可变）。
+- AC-26 _Given_ 研究完成 _When_ `GET /api/research/{id}`、`GET .../results/{result_id}`、`.../comparisons/{id}` _Then_ RunState 含 `latest_answer` + 每股指标摘要 + comparison 摘要，且能按 id 取到完整 `StockResult`/`ComparisonResult`（前端无需猜）；追问 `POST /messages` **显式返回 `answer`**。
+- AC-27 _Given_ 某 mutation 进行中 _When_ 同一 run 再来一个 mutation（上传/改时间/重生成）_Then_ 返回 **`409 run_busy`**（纯读 GET 不受限）。
+- AC-28 _Given_ 对话超过触发阈值（轮次或 token）_When_ **自动压缩** _Then_ 原子完成（summary 写失败**不删 raw**、summary **不覆盖 workspace**）；压缩后"阿里第二条风险"经 `ReportSectionIndex`+`citation_ids` 定位、不走 summary 猜。
+- AC-29 _Given_ 用户上传文件 _When_ `POST /uploads` _Then_ **立即登记并后台处理**（registered→extracted→attached→analyzed），analyzed 后自动更新该公司结论并生成新报告版本（满足 AC-22）。
 
 > 注：不必真测"15 轮"，但**必须测"压缩/摘要触发后仍不丢关键状态"**（AC-23）。
 
