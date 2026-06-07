@@ -47,7 +47,7 @@
 ├── AGENTS.md                     # 开发/agent 指引 + .harness 说明
 ├── README.md
 ├── .harness/                     # AI 工程约束体系（规则/角色/风险分级流程/传感器/变更模板/变更记录）
-│   └── changes/phase-1-mvp/      # 第一期变更：PRD.md · backend/spec.md · frontend/spec.md（暂缓）· api-integration.md · presentation-outline.md
+│   └── changes/phase-1-mvp/      # 第一期变更（SDD：Specify→Plan→Tasks）：PRD.md · backend/(spec.md+plan.md) · frontend/spec.md（暂缓）· api-integration.md · presentation-outline.md
 ├── requirements.txt · .env.example
 └── （实现待建：src/ web/ tests/ app.py）
 ```

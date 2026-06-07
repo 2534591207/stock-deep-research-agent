@@ -15,7 +15,7 @@
 ├── AGENTS.md                     # 本指引
 ├── README.md                     # 项目入口
 ├── .harness/                     # AI 工程约束体系（见下）
-│   └── changes/phase-1-mvp/      # 第一期变更：PRD.md · backend/spec.md · frontend/spec.md（暂缓）· api-integration.md · presentation-outline.md
+│   └── changes/phase-1-mvp/      # 第一期变更：PRD.md · backend/(spec.md+plan.md) · frontend/spec.md（暂缓）· api-integration.md · presentation-outline.md
 ├── requirements.txt              # 依赖（计划栈）
 └── .env.example                  # 环境变量模板
 # 实现按需求基线 + harness 流程产出：src/ web/ tests/ app.py（待建）
@@ -31,7 +31,7 @@
 | `roles/` | 角色 prompt：`planner` / `analyst` / `implementer` / `reviewer`（评审须独立 agent 执行） |
 | `playbooks/` | 风险分级流程：`L0-trivial` … `L3-high-risk`——接到任务先按风险层选 playbook |
 | `sensors/` | 机械化校验脚本（`check-all.sh` 等）；任何时候可跑 |
-| `changes/phase-1-mvp/` | **第一期需求变更**：`PRD.md`（需求基线）· `backend/spec.md` · `frontend/spec.md`（暂缓）· `api-integration.md`（数据源接入）· `presentation-outline.md` |
+| `changes/phase-1-mvp/` | **第一期需求变更**：`PRD.md`（需求基线）· `backend/`（`spec.md` Specify + `plan.md` Plan，Tasks 待出）· `frontend/spec.md`（暂缓）· `api-integration.md`（数据源接入）· `presentation-outline.md` |
 | `changes/_template/` | 变更模板：PRD / design / risk-assessment / review-packet / rollback / acceptance-report |
 | `feedback/` | 评审反馈与豁免（waivers） |
 | `changelog.md` / `manifest.yaml` | 变更记录与生成清单 |
@@ -51,5 +51,19 @@
 ## 开发约定
 
 1. **以 `.harness/changes/phase-1-mvp/PRD.md` 为唯一需求来源**；新增/改动功能前先对照它。
-2. **按 `.harness/` 流程推进**：接到任务先判风险层（playbook）→ 六阶段（PRD → design → implement → review → ship）→ 先设计后写码 → 评审由独立 agent 执行 → 跑 `bash .harness/sensors/check-all.sh` 验证。
-3. 技术栈 / 模型 / 框架等实现细节按需另出 spec，不写进需求文档。
+2. **按 SDD + harness 流程推进**：判风险层（playbook）→ 规范文档 Specify → Plan → Tasks（见下）→ 按任务 TDD 实现 → 评审由独立 agent 执行 → 跑 `bash .harness/sensors/check-all.sh` 验证。
+3. 技术栈 / 模型 / 框架等实现细节写在 **Plan（`plan.md`）**，不写进需求基线（PRD）。
+
+## SDD 文档规范（Spec-Driven Development）
+
+每个变更（`.harness/changes/<change>/<component>/`）按规范驱动开发推进，**规范文档是唯一事实源**：
+
+| 阶段 | 文档 | 内容 |
+|---|---|---|
+| **Constitution** | `.harness/rules/core/` + `PRD.md §2` | 根本大法：工程规则 + 产品原则（不可违背） |
+| **Specify** | `spec.md` | 做什么：用户故事 + 验收标准 |
+| **Plan** | `plan.md` | 怎么做：架构、API、数据模型、技术选型 |
+| **Tasks** | `tasks.md` | 原子任务 + 依赖（**Plan 通过后**产出） |
+| **Implement** | 代码 | 按任务 **TDD**：先写失败测试 → 最小实现 → 验证 |
+
+规则：每阶段过了再进下一阶段；评审与实现分开（评审走 `.harness/roles/reviewer.md`，独立 agent）。
