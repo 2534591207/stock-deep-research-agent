@@ -14,11 +14,11 @@
 
 当前阶段为**产品需求与设计**：
 
-- ✅ 产品需求与功能边界已定义（见 [`docs/product-requirements.md`](docs/product-requirements.md)）。
+- ✅ 产品需求与功能边界已定义（见 [`.harness/changes/phase-1-mvp/PRD.md`](.harness/changes/phase-1-mvp/PRD.md)）。
 - ✅ 数据源接入已调研并实测（Twelve Data / Tavily / SEC EDGAR）。
 - ⏳ 实现进行中（Roadmap）。
 
-> README 描述的是产品目标；并非所有能力都已实现。请以 `docs/` 为准。
+> README 描述的是产品目标；并非所有能力都已实现。请以需求基线为准。
 
 ---
 
@@ -46,8 +46,8 @@
 .
 ├── AGENTS.md                     # 开发/agent 指引 + .harness 说明
 ├── README.md
-├── docs/product-requirements.md  # 唯一需求基线
 ├── .harness/                     # AI 工程约束体系（规则/角色/风险分级流程/传感器/变更模板/变更记录）
+│   └── changes/phase-1-mvp/      # 第一期需求变更：PRD.md（需求基线）+ api-integration.md + presentation-outline.md
 ├── requirements.txt · .env.example
 └── （实现待建：src/ web/ tests/ app.py）
 ```
@@ -58,7 +58,7 @@
 
 ## 文档
 
-- **[`docs/product-requirements.md`](docs/product-requirements.md)** — 唯一产品需求基线：分层风险规则、功能边界、数据源与接入、实现阶段。
+- **[`.harness/changes/phase-1-mvp/PRD.md`](.harness/changes/phase-1-mvp/PRD.md)** — 唯一产品需求基线：分层风险规则、功能边界、数据源与接入、实现阶段。
 - **[`AGENTS.md`](AGENTS.md)** — 开发 / agent 指引 + `.harness/` 结构说明。
 
 ---

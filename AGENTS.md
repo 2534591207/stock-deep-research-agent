@@ -1,6 +1,6 @@
 # AGENTS.md
 
-> 本仓库的开发 / agent 指引。**需求基线见 [`docs/product-requirements.md`](docs/product-requirements.md)**——所有功能、规则、边界以该文件为准。工程执行受 **`.harness/`** 约束体系约束。
+> 本仓库的开发 / agent 指引。**需求基线见 [`.harness/changes/phase-1-mvp/PRD.md`](.harness/changes/phase-1-mvp/PRD.md)**——所有功能、规则、边界以该文件为准。工程执行受 **`.harness/`** 约束体系约束。
 
 ## 项目
 
@@ -14,9 +14,8 @@
 .
 ├── AGENTS.md                     # 本指引
 ├── README.md                     # 项目入口
-├── docs/
-│   └── product-requirements.md   # 唯一需求基线（功能、规则、边界、数据源、实现阶段）
 ├── .harness/                     # AI 工程约束体系（见下）
+│   └── changes/phase-1-mvp/      # 第一期需求变更：PRD.md（需求基线）+ api-integration.md + presentation-outline.md
 ├── requirements.txt              # 依赖（计划栈）
 └── .env.example                  # 环境变量模板
 # 实现按需求基线 + harness 流程产出：src/ web/ tests/ app.py（待建）
@@ -32,6 +31,7 @@
 | `roles/` | 角色 prompt：`planner` / `analyst` / `implementer` / `reviewer`（评审须独立 agent 执行） |
 | `playbooks/` | 风险分级流程：`L0-trivial` … `L3-high-risk`——接到任务先按风险层选 playbook |
 | `sensors/` | 机械化校验脚本（`check-all.sh` 等）；任何时候可跑 |
+| `changes/phase-1-mvp/` | **第一期需求变更**：`PRD.md`（唯一需求基线）+ `api-integration.md`（数据源接入）+ `presentation-outline.md` |
 | `changes/_template/` | 变更模板：PRD / design / risk-assessment / review-packet / rollback / acceptance-report |
 | `feedback/` | 评审反馈与豁免（waivers） |
 | `changelog.md` / `manifest.yaml` | 变更记录与生成清单 |
@@ -50,6 +50,6 @@
 
 ## 开发约定
 
-1. **以 `docs/product-requirements.md` 为唯一需求来源**；新增/改动功能前先对照它。
+1. **以 `.harness/changes/phase-1-mvp/PRD.md` 为唯一需求来源**；新增/改动功能前先对照它。
 2. **按 `.harness/` 流程推进**：接到任务先判风险层（playbook）→ 六阶段（PRD → design → implement → review → ship）→ 先设计后写码 → 评审由独立 agent 执行 → 跑 `bash .harness/sensors/check-all.sh` 验证。
 3. 技术栈 / 模型 / 框架等实现细节按需另出 spec，不写进需求文档。
