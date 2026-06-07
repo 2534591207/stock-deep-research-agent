@@ -32,11 +32,12 @@ config.py / models.py
 |---|---|---|
 | `POST /api/research` | 建 run | `{run_id, status, plan}` |
 | `GET /api/research/{run_id}` | 轮询全状态 | `RunState`（含 `latest_answer`、每股结果摘要、comparison 摘要、report 状态，见 §4）|
-| `POST /api/research/{run_id}/messages` | 追问 | `{message_id, answer, run_state}`——**显式返回 assistant answer**，不只 RunState |
+| `POST /api/research/{run_id}/messages` | 追问 | **`202 {message_id, status}`**；快速答即时就绪、重跑类轮询 `RunState.latest_answer_status=ready` 后取（见 §3）|
 | `POST /api/research/{run_id}/uploads` | 上传 | `{asset_id, filename, status}`（status=registered→见 §3 处理模型）|
 | `GET /api/research/{run_id}/results/{result_id}` | 取单股完整结果 | `StockResult`（含组件 + lineage）|
 | `GET /api/research/{run_id}/comparisons/{comparison_id}` | 取比较 | `ComparisonResult` |
-| `GET /api/research/{run_id}/assets/{asset_id}` | 取资产/片段 | `SessionAsset`（按 citation 定位）|
+| `GET /api/research/{run_id}/assets/{asset_id}` | 取资产/片段 + 上传状态 | `SessionAsset`（按 citation 定位）|
+| `GET /api/research/{run_id}/snapshots/{snapshot_id}` | 取行情快照（日线，供走势图/归一化）| `MarketDataSnapshot` |
 | `GET /api/research/{run_id}/report?format=markdown` | 当前报告 | **等价于** `GET /reports/{active_report_id}` |
 | `GET /api/research/{run_id}/reports` | 列报告版本 | `[{report_id,version,scope_version,status,created_at}]`，**按 version 升序固定** |
 | `GET /api/research/{run_id}/reports/{report_id}?format=markdown` | 取指定版本 | **历史报告不可变** |
@@ -59,7 +60,10 @@ created → planning → researching(并行单股) → comparing → reporting �
 ```
 - 单股 = 独立 asyncio 任务，`gather` 并行；失败/超时捕获标记，不影响其它股。单股总超时 ~25s；事件每股 ≤ 2 轮。
 - **并发模型（MVP，不做复杂队列）**：每个 run 维护一个 `active_op`；mutation 类请求（追问触发重跑、上传、改时间、重生成报告）**串行化**——进行中再来 mutation → `409 run_busy`（前端可重试）；纯读（GET）不受限。
-- **上传处理模型（满足 AC-22）**：`POST /uploads` **立即登记**（`status=registered`）并**后台启动处理**（extract→attach→analyze→可能触发 report 重生成）；处理进度由 `GET /uploads` 状态或轮询 RunState 反映。lifecycle：`registered → extracted → attached → analyzed → failed`。
+- **追问响应语义（202 + 轮询）**：`POST /messages` 立即返回 `202 {message_id}`；快速动作（`answer_from_existing_state`）`latest_answer` 可即时就绪，重跑类（改时间/换股，10–30s）需轮询 `RunState.latest_answer_status=ready` 后取 `latest_answer`。
+- **active_op 获取/释放**：初始研究、追问重跑、上传处理、报告生成**各自占用** `active_op`，开始时获取、完成或失败时释放；占用期间其它 mutation → `409 run_busy`。
+- **上传处理模型（满足 AC-22/29）**：`POST /uploads` 立即登记（`registered`）并后台处理；`analyzed` 后**自动**生成该公司的新报告版本（确定，非"可能"）。lifecycle `registered → extracted → attached → analyzed`，**任意阶段可 `failed`**；无法归属公司 → `needs_clarification`（提示指定，不硬塞）或 `unattached`。进度经 `GET /assets/{asset_id}` 或 RunState 反映（**无独立 `/uploads` 接口，统一走 assets**）。
+- **上传拒绝**：>10MB / 非 `application/pdf`·`text/plain`·`text/markdown` / 不支持格式 → `400/415` 并说明，不入库。
 
 ---
 
@@ -75,41 +79,47 @@ EventSearchSnapshot: snapshot_id; symbol; move_id; window{start,end}; provider; 
                      results:[EventEvidence]; retrieved_at; warnings; payload_hash   # ← per move/window
 FilingSnapshot:      snapshot_id; symbol; cik; filing_form; accession_number; filing_date
                      excerpts:[FilingExcerpt]; retrieved_at; source_url; payload_hash
-UploadAsset:         asset_id; filename; mime; size; upload_time; status; owner_company?
+UploadAsset:         asset_id; filename; mime; size; upload_time; owner_company?
+                     status   # registered|extracted|attached|analyzed|needs_clarification|unattached|failed
+                     failed_stage?; reject_reason?
 UploadExtraction:    extraction_id; asset_id; chunks:[{chunk_id, page_start, page_end, text}]; extracted_at
 ```
 `EventEvidence{evidence_id, title, url, source, source_tier, published_at, retrieved_at, direction}`。
 
-### 4.2 组件化研究结果（lineage + 部分失效）
+### 4.2 组件化研究结果（不可变内容；有效性在 Workspace 侧）
+> **不可变内容**：Snapshot / Component / StockResult / Report 内容一经生成不再改。**失效不改它们**，而是在 Workspace（§8.1）标记 `invalidated_parts` 并重跑生成**新 id**；旧版本保留。组件**带 `component_id`**。
 ```python
-StockResult:
+Component (不可变):
+    component_id; component_type   # market_metrics | observed_market_risk | event | business_risk | market_view
+    payload; input_snapshot_ids; generated_at
+StockResult (不可变):
     result_id; symbol; time_range; scope_version; generated_at
-    market_metrics_component       # {value, input_snapshot_ids:[mkt], generated_at, valid, invalidated_reason}
-    event_component                # {moves:[{move_id, event_search_snapshot_ids, evidence_ids}], valid, ...}
-    business_risk_component        # {risks:[BusinessRisk], input_snapshot_ids:[filing/upload], valid, ...}
-    market_view_component          # {value, return_threshold_pct, reason, valid, ...}
-    valid_overall: derived         # 任一关键 component 失效 → 该 result 需局部重跑
+    components: {component_type: component_id}   # 含 market_metrics / observed_market_risk / event / business_risk / market_view
 ```
-> 上传只让 `business_risk_component` 失效（行情/MarketView 仍 valid）；改时间让 metrics/event/market_view 失效、filing 可复用但标 `filing as-of`。**部分失效靠 component.valid，不靠单一 bool。**
+**有效性 = Workspace 侧记录**：`invalidated_parts:[InvalidatedPart]`（按 `component_id`）+ `result_ids{symbol: active_result_id}`。
+> 例：上传只让某公司 `business_risk` 组件失效（其余组件仍是当前 active）；改时间让 metrics/observed_market_risk/event/market_view 全部需新组件、filing 可复用但标 `filing as-of`。
 
-### 4.3 比较与报告（绑定来源，可追溯）
+### 4.3 比较与报告（不可变内容；生命周期在 Workspace 侧）
 ```python
-ComparisonResult: comparison_id; scope_version; stock_result_ids; generated_at; ranking; caveat
-ReportVersion:    report_id; version; scope_version; comparison_id; stock_result_ids
-                  asset_ids_used; citation_ids; sections; section_index:[ReportSectionIndex]
-                  created_at; status                 # active | stale | superseded
+ComparisonResult (不可变): comparison_id; scope_version; stock_result_ids; generated_at; ranking; caveat
+ReportVersion (不可变内容):  report_id; version; scope_version; comparison_id; stock_result_ids
+                  asset_ids_used; citation_ids; sections; section_index:[ReportSectionIndex]; created_at
 ```
+**报告生命周期状态不写在 ReportVersion 上**，而在 Workspace：`report_lifecycle{report_id: active | stale | superseded}` + `active_report_id`。历史报告内容不可变；切换的只是 Workspace 侧的 active 指针与状态。
 
 ### 4.4 运行/会话状态（前端可直接用）
 ```python
 RunState:
-    run_id; status; plan; active_op?           # 并发互斥用
-    latest_answer                              # 最近一次 assistant 回答（追问也单独返回）
+    run_id; status; plan; active_op?            # 并发互斥；值见 §3
+    latest_answer; latest_answer_status         # ready | pending（202 语义，见 §3）
     workspace_summary{current_companies,time_range,focus,scope_version}
-    stocks:[{symbol, status, active_result_id, metrics_summary}]   # ← 摘要直出，不只 id
+    stocks:[{symbol, status, active_result_id,
+             current_quote{price,quote_time,freshness,is_demo_data},
+             metrics_summary, observed_market_risk_summary,
+             normalized_series_ref, market_snapshot_id}]    # ← 前端走势图/当前价/风险所需
     comparison{comparison_id, ranking_summary}
-    report{active_report_id, report_status, report_versions}
-    assets:[{asset_id, type, status}]
+    report{active_report_id, report_lifecycle, report_versions}   # lifecycle: active|stale|superseded
+    assets:[{asset_id, type, status}]           # status: registered|extracted|attached|analyzed|needs_clarification|unattached|failed
     invalidated_parts:[InvalidatedPart]; warnings
 ```
 
@@ -167,8 +177,8 @@ Market View：缺数/日线<10/Coverage<0.8→Insufficient；风险High→Cautio
 
 ```python
 MAX_STOCKS=3; MAX_RANGE_DAYS=365; MAX_MOVES_PER_STOCK=3; EVENT_ROUNDS=2; SIGNIFICANT_MOVE_MIN_PCT=0.02
-RISK_THRESHOLDS={...}; SOURCE_TIERS_VERSION="v1"; SOURCE_TIERS={high:[...],medium:[...],weak:[...]}
-RECENT_MESSAGES_N=6; COMPRESSION_TOKEN_THRESHOLD=...   # §8.5
+RISK_THRESHOLDS={...}; SOURCE_TIERS_VERSION="v1"; SOURCE_TIERS={high:[...],medium:[...],weak:[...]}   # 枚举 high|medium|weak（PRD"高可信/可信/弱相关"映射到此）
+RECENT_MESSAGES_N=6; COMPRESSION_TOKEN_THRESHOLD=6000   # 默认；测试注入小值（§8.5）
 ```
 环境变量：`TWELVE_DATA_API_KEY / TAVILY_API_KEY / SEC_USER_AGENT / OPENAI_API_KEY`。
 **未配 Key → 演示数据**：所有此类数据带 `is_demo_data=true` + `demo_snapshot_id` + 强制 `warning`，前端必须显眼标注，不得当实时。
@@ -183,7 +193,7 @@ ResearchWorkspace:
     workspace_id; scope_version
     current_companies; current_time_range; focus
     result_ids{symbol: active_result_id}; result_store(ref §4.2)
-    comparison_id; active_report_id; report_versions
+    comparison_id; active_report_id; report_versions; report_lifecycle{report_id: active|stale|superseded}; active_op
     uploaded_assets; evidence_index; user_decisions; warnings
     invalidated_parts:[InvalidatedPart]; pending_mutations
 ```
@@ -245,7 +255,7 @@ RerunPlan (code):
 ```python
 InvalidatedPart: component_id; component_type; owner_symbol; reason_code; invalidated_by; invalidated_at
 ```
-**active report 状态机**：历史 report 永久可取且不可变；mutation 期间 `active_report_id` **仍指向旧版**但 `report_status=stale/pending_regeneration`；新报告**成功后才切** active；生成失败**不覆盖** active，只加 warning。
+**active report 状态机**：历史 report 永久可取且不可变；mutation 期间 `active_report_id` **仍指向旧版**但 `report_lifecycle[旧版]=stale`；新报告**成功后才切** active（旧版 → `superseded`）；生成失败**不覆盖** active，只加 warning。（统一枚举：`active | stale | superseded`）
 
 ### 8.4 四层记忆 + Context Assembly
 ```

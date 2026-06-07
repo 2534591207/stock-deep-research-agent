@@ -5,5 +5,6 @@
 phase: design
 tier: L2
 change_name: phase-1-mvp
-updated_at: 2026-06-07T16:08:07Z
-updated_by: claude (phase-1-mvp design hardening, awaiting independent re-review)
+current_change: phase-1-mvp   # field read by check-workflow-state.sh
+updated_at: 2026-06-07T16:25:48Z
+updated_by: claude (phase-1-mvp design hardening; SDD: no design.md, design=Plan)
