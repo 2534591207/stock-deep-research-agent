@@ -1,0 +1,14 @@
+# _example.yaml — waiver schema example (not a real waiver)
+# Copy this file to feedback/waivers/<change-name>-<rule-id>.yaml to create a real waiver.
+# Remove this example file; it is for reference only.
+
+rule: CORE-01                         # Required. Rule ID being waived.
+change: my-feature-20260516           # Required. Change directory name.
+reason: L0-trivial                    # Required. Free text or a recognized code:
+                                      #   L0-trivial, L1-inline-design, emergency-hotfix
+granted_by: "Jane Smith"              # Required. Human who approved the waiver.
+granted_at: "2026-05-16"             # Required. ISO-8601 date.
+expires_at: "2026-06-16"             # Required. Waivers must expire. Max 90 days.
+notes: |
+  This is a one-line config tweak with no behavioral change.
+  PRD waived under L0-trivial policy. See CORE-01 rule for details.

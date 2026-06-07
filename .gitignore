@@ -1,0 +1,23 @@
+# OMC / agent state (not part of the project)
+.omc/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Env / secrets
+.env
+.env.local
+*.local
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Logs / generated
+*.log
