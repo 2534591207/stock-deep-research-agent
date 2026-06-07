@@ -269,7 +269,7 @@ return_threshold = 5% × √(预期交易日数 / 21)
 | 新闻 / 事件 / 舆情（B）| Tavily | ✅ 实测返回带时间来源结果 |
 | 财务事实 / 10-K 申报（B+ / 可选）| SEC EDGAR | ✅ 实测 |
 
-详见 `docs/stock-research-api-integration.md`。**实时性**：免费实时是部分市场（约 5% 成交量）→ 当前价当"参考价"标注、不用于交易；走势用已完成日线。免费额度内（三股 × 报价+历史 ≈ 6 次）。
+**接入**：Twelve Data 与 Tavily 需免费 API Key（环境变量 `TWELVE_DATA_API_KEY` / `TAVILY_API_KEY`）；SEC EDGAR 免 Key，需合规 `SEC_USER_AGENT`。**实时性**：免费实时是部分市场（约 5% 成交量）→ 当前价当"参考价"标注、不用于交易；走势用已完成日线。免费额度内（三股 × 报价+历史 ≈ 6 次）。
 
 ---
 

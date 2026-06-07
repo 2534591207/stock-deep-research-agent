@@ -42,10 +42,8 @@
 
 ## 文档
 
-| 文档 | 内容 |
-|---|---|
-| [`docs/product-requirements.md`](docs/product-requirements.md) | 产品需求与边界：分层风险规则、功能边界、实现阶段 |
-| [`docs/stock-research-api-integration.md`](docs/stock-research-api-integration.md) | 数据源接入（Twelve Data / Tavily / SEC，含实测验证） |
+- **[`docs/product-requirements.md`](docs/product-requirements.md)** — 唯一产品需求基线：分层风险规则、功能边界、数据源与接入、实现阶段。
+- **[`AGENTS.md`](AGENTS.md)** — 开发 / agent 指引（指向需求基线）。
 
 ---
 

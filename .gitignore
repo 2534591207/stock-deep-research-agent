@@ -24,5 +24,4 @@ venv/
 
 # Internal workflow / agent files (kept local, not published)
 .harness/
-AGENTS.md
 CLAUDE.md
