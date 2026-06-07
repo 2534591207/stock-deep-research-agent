@@ -40,10 +40,26 @@
 
 ---
 
+## 项目结构
+
+```
+.
+├── AGENTS.md                     # 开发/agent 指引 + .harness 说明
+├── README.md
+├── docs/product-requirements.md  # 唯一需求基线
+├── .harness/                     # AI 工程约束体系（规则/角色/风险分级流程/传感器/变更模板/变更记录）
+├── requirements.txt · .env.example
+└── （实现待建：src/ web/ tests/ app.py）
+```
+
+`.harness/` 是本项目的工程约束体系：按风险分级的工作流（playbooks）、角色 prompt（roles）、工程规则（rules）、机械化校验（sensors）、变更模板与变更记录。详见 [`AGENTS.md`](AGENTS.md)。
+
+---
+
 ## 文档
 
 - **[`docs/product-requirements.md`](docs/product-requirements.md)** — 唯一产品需求基线：分层风险规则、功能边界、数据源与接入、实现阶段。
-- **[`AGENTS.md`](AGENTS.md)** — 开发 / agent 指引（指向需求基线）。
+- **[`AGENTS.md`](AGENTS.md)** — 开发 / agent 指引 + `.harness/` 结构说明。
 
 ---
 

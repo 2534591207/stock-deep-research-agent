@@ -1,10 +1,41 @@
 # AGENTS.md
 
-> 本仓库的开发 / agent 指引。**需求基线见 [`docs/product-requirements.md`](docs/product-requirements.md)**——所有功能、规则、边界以该文件为准。
+> 本仓库的开发 / agent 指引。**需求基线见 [`docs/product-requirements.md`](docs/product-requirements.md)**——所有功能、规则、边界以该文件为准。工程执行受 **`.harness/`** 约束体系约束。
 
 ## 项目
 
 **Stock Deep Research Agent**：面向非专业用户的对话式美股研究助手。用户用一句自然语言选公司、定时间、提关注点，Agent 自动识别公司、取行情、确定性计算市场风险、围绕异动检索事件证据、横向比较，产出可下载的英文研究报告。研究辅助工具，输出不构成投资建议。
+
+技术栈（计划）：Python + FastAPI + 原生 HTML/CSS/JS；LLM 用 OpenAI。
+
+## 项目结构
+
+```
+.
+├── AGENTS.md                     # 本指引
+├── README.md                     # 项目入口
+├── docs/
+│   └── product-requirements.md   # 唯一需求基线（功能、规则、边界、数据源、实现阶段）
+├── .harness/                     # AI 工程约束体系（见下）
+├── requirements.txt              # 依赖（计划栈）
+└── .env.example                  # 环境变量模板
+# 实现按需求基线 + harness 流程产出：src/ web/ tests/ app.py（待建）
+```
+
+## `.harness/` 约束体系里有什么
+
+| 路径 | 作用 |
+|---|---|
+| `README.md` / `HARNESS.md` | harness 导航与说明 |
+| `project.yaml` | 项目元数据（栈、语言、源/测试目录） |
+| `rules/core/` | 工程规则（core-01..05：显式意图 / given-when-then / 六阶段工作流 / 诚实表达 / 设计-验收） |
+| `roles/` | 角色 prompt：`planner` / `analyst` / `implementer` / `reviewer`（评审须独立 agent 执行） |
+| `playbooks/` | 风险分级流程：`L0-trivial` … `L3-high-risk`——接到任务先按风险层选 playbook |
+| `sensors/` | 机械化校验脚本（`check-all.sh` 等）；任何时候可跑 |
+| `changes/_template/` | 变更模板：PRD / design / risk-assessment / review-packet / rollback / acceptance-report |
+| `feedback/` | 评审反馈与豁免（waivers） |
+| `changelog.md` / `manifest.yaml` | 变更记录与生成清单 |
+| `workflow.md` / `gardening.md` | 工作流与维护流程 |
 
 ## 三条不可动摇的原则
 
@@ -19,5 +50,6 @@
 
 ## 开发约定
 
-- **以 `docs/product-requirements.md` 为唯一需求来源**；新增或改动功能前先对照它。
-- 技术栈 / 模型 / 框架等实现细节按需另出 spec，不写进需求文档。
+1. **以 `docs/product-requirements.md` 为唯一需求来源**；新增/改动功能前先对照它。
+2. **按 `.harness/` 流程推进**：接到任务先判风险层（playbook）→ 六阶段（PRD → design → implement → review → ship）→ 先设计后写码 → 评审由独立 agent 执行 → 跑 `bash .harness/sensors/check-all.sh` 验证。
+3. 技术栈 / 模型 / 框架等实现细节按需另出 spec，不写进需求文档。
