@@ -103,16 +103,71 @@ MARKETS={"US":{catalog, market_data_provider, news_provider, filings_provider, a
 ```
 环境变量：`TWELVE_DATA_API_KEY / TAVILY_API_KEY / SEC_USER_AGENT / OPENAI_API_KEY`。未配 Key → 行情走标注过的演示数据，不伪装实时。
 
-## 8. 会话与降级
+## 8. 会话式 Agent：状态 · 资产 · 记忆 · 追问路由 · 增量重跑
 
-- run = 一次会话，内存态：公司、时间、关注点、各股结构化结果、证据、上传文件、报告。
-- 追问三类路由（复用 / 重研究 / 补一步）。关闭刷新是否保留不作核心验收。
-- 降级逐条落 PRD §14；任何失败不编造。
+> 本期最核心的 Agent 能力（落 PRD §12 + spec AC-16..24）。**不是聊天记录，是研究工作区的结构化事实。**
+
+### 8.1 Research Workspace（会话状态 · 核心 · 不可被压缩丢失）
+```python
+ResearchWorkspace:
+    workspace_id
+    current_companies     # [CompanyIdentity]，支持名单内任意标的，非固定
+    current_time_range
+    focus
+    stock_results         # {symbol: SingleStockResult}
+    comparison
+    active_report_id      # 当前报告版本
+    report_versions       # [report_id...]
+    uploaded_assets       # [asset_id...]
+    evidence_index        # 已查事件/证据
+    warnings
+    invalidated_parts     # 局部失效标记（换股/改时间后 comparison/report 失效）
+```
+"哪些数据已查过、哪些已失效"由它记录，**不靠模型记忆、不可被摘要压丢**。
+
+### 8.2 Session Assets（会话资产索引 · 大内容按需读取）
+报告、上传文件、行情快照、事件证据、filing 摘要、报告历史版本都是资产，**不每轮全文进上下文**。
+```python
+SessionAsset:
+    asset_id; type; title; owner_company; summary; citations; content_ref; created_at; version
+```
+追问引用时：从 workspace 知道有哪些资产 → 按 owner/类型定位 → 只读相关片段 → 引用文件名+页码/链接。本期内存实现，概念必须在。
+
+### 8.3 Followup Router（每轮先判 action）
+```text
+answer_from_existing_state   # "重点看风险" / "阿里第二条风险"
+supplement_missing_research  # "那段为什么跌"（没查过）→ 补一步
+rerun_changed_scope          # 换股/改时间 → 局部重研究
+regenerate_report            # "更新报告" → 基于最新状态出新版本
+clarify_request              # 歧义 → 一个澄清问题
+reject_out_of_scope          # "我要买哪个" → 安全拒答转风险/证据
+```
+增量重跑：换股只研究新股 + 复用旧股 + 重算比较/报告；改时间重取受影响股票（旧指标作废、标 invalidated）；上传文件只更新相关公司结论 + 出新报告版本，不重复取行情。
+
+### 8.4 四层记忆 + Context Assembly（每轮上下文按需组装）
+```text
+1 Recent Messages      最近 N 轮原文（理解"它/刚才/第二条/重新生成"等指代）
+2 Conversation Summary 较早对话摘要（用户决定、范围修改、认为不相关的证据）——可压缩层
+3 Research Workspace   §8.1 结构化状态——确定事实，不可被摘要覆盖、不可压丢
+4 Session Assets       §8.2 大内容索引——按需读片段
+```
+每轮喂给 LLM 的不是全历史，而是 ContextAssembler 组装：
+```text
+system guardrails + 当前用户消息 + recent messages + conversation summary + 相关 workspace 状态 + 相关 asset 片段
+```
+
+### 8.5 压缩触发（原则，不做复杂算法）
+- 最近 N 轮保留原文；超阈值生成 conversation summary。
+- 用户决定、范围修改、报告版本、上传文件、关键结论**必须写入结构化状态**。
+- 原始大文件不进 summary；**summary 不能覆盖 structured state**；压缩后必须能通过 **AC-23** 恢复关键研究事实。
+
+### 8.6 降级
+逐条落 PRD §14；任何失败不编造数据。
 
 ## 9. 关键取舍（argue）
 
 1. **量化全代码、模型只解释** → 可复现/可对账/可单测（PRD 原则一）。
-2. **provider/catalog 用接口** → 换源/加市场零改核心；本期只实现 US，边界先留对，不过度展开多市场。
+2. **catalog/provider 用接口、目录驱动** → 支持名单内**任意**美股/ADR 走同一流程，**不写死固定股票/组合/句式**（PRD §12 通用股票能力）；换数据源也零改核心。多市场（如 A 股）本期不做，但抽象不挡路。
 3. **run + 轮询** → 支撑可见编排、前端无关、最简稳；SSE 为后续优化。
 4. **会话只内存态** → PRD §12，避免存储依赖。
 5. **事件方向只展示** → 不污染数值结论（PRD §8.6）。
