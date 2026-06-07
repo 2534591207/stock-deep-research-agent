@@ -61,7 +61,7 @@
 - AC-11 `GET .../report?format=markdown` 返回英文报告，每股 9 节齐全，含来源、Observation period、英文免责声明、排名 caveat。
 
 **会话与降级**
-- AC-12 追问"重点比较风险" → 复用结果重组，不再调行情 provider。
+- AC-12 追问"重点比较风险" → 复用结果重组，不再调行情 provider（**以 fake provider 调用计数 = 0 验证**）。
 - AC-13 行情 provider 失败 → 该股 failed 隔离，其它完成、报告标缺失。
 - AC-14 未配 Key → 演示数据明确标注、不伪装实时。
 
@@ -72,12 +72,13 @@
 - AC-16 _Given_ 用户输入支持名单中但非固定样本的股票（如 MSFT/AMZN/CRM/COST）_When_ 发起研究 _Then_ 通过 catalog/provider 识别并走完整流程，**不依赖固定代码或固定组合**。
 - AC-17 _Given_ 用户用不同表达描述同一意图 _When_ 发起研究 _Then_ 正确识别公司/时间/关注点，而非只匹配固定句式。
 - AC-18 _Given_ 已完成一次多股研究 _When_ 连续多轮追问（风险、事件、报告、上传、范围修改）_Then_ 始终正确引用当前股票、时间范围、已有结论和报告。
-- AC-19 _Given_ 当前报告含多条事件和风险 _When_ 用户问"刚才阿里的第二条风险具体是什么" _Then_ 定位到 BABA 对应风险，不误用其它股票、不编造。
+- AC-19 _Given_ 当前报告含多条事件和风险 _When_ 用户问"刚才阿里的第二条风险具体是什么" _Then_ 经 plan §8.2 `ReportSectionIndex`（owner_company + item_order）定位到 BABA 第 2 条风险，不误用其它股票、不编造。
 - AC-20 _Given_ 研究含 NVDA/BABA/INTC _When_ "把英特尔换成 AMD" _Then_ 只研究 AMD，复用 NVDA/BABA 仍有效结果，重新生成比较与报告。
 - AC-21 _Given_ 当前为最近三个月 _When_ "改成最近一年" _Then_ 重新获取受影响股票的行情与事件，**旧指标不得用于新时间范围**。
 - AC-22 _Given_ 已完成研究并生成报告 _When_ 上传属于某公司的 PDF/TXT/MD _Then_ 分析并归属、更新相关结论、生成新报告版本，不重复请求不必要的行情。
-- AC-23 _Given_ 会话触发上下文压缩/摘要 _When_ 再问最初研究对象、时间范围、核心结论或当前报告 _Then_ 能从**结构化会话状态**恢复正确答案，不依赖完整聊天记录。
-- AC-24 _Given_ 会话多次生成报告 _When_ "更新刚才的报告"或"上一版报告里那条风险" _Then_ 能区分当前版本与历史版本，引用正确内容。
+- AC-23 _Given_ 完成一次研究后手动 `compress_conversation()`（删早期 raw messages，只留 summary+workspace+assets，见 plan §8.5）_When_ 再问"研究哪几家 / 时间范围 / 阿里第二条风险 / 更新报告" _Then_ 答案来自**结构化会话状态**、不依赖完整聊天记录；**不可丢字段清单见 plan §8.5**。
+- AC-24 _Given_ 会话多次生成报告 _When_ "更新刚才的报告"或"上一版报告里那条风险" _Then_ 区分当前版本与历史版本、引用正确内容（经 `GET /reports` 列版本、`GET /reports/{report_id}` 取指定版本验证；`RunState` 含 `active_report_id`/`report_versions`）。
+- AC-25 _Given_ 会话已生成多个报告版本 _When_ `GET /api/research/{id}/reports` 与 `GET .../reports/{report_id}?format=markdown` _Then_ 能列出版本并取到指定历史版本，`active_report_id` 正确指向当前版本。
 
 > 注：不必真测"15 轮"，但**必须测"压缩/摘要触发后仍不丢关键状态"**（AC-23）。
 
