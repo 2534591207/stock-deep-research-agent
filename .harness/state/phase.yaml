@@ -2,9 +2,9 @@
 # Tracks the current workflow phase. Updated by agents as work progresses.
 # Valid phases: idle | classify | prd | design | build | verify | close
 
-phase: design
-tier: L2
-change_name: phase-1-mvp
-current_change: phase-1-mvp   # field read by check-workflow-state.sh
-updated_at: 2026-06-07T16:25:48Z
-updated_by: claude (phase-1-mvp design hardening; SDD: no design.md, design=Plan)
+phase: "design"
+tier: "L2"
+change_name: "phase-1-mvp"
+current_change: "phase-1-mvp"
+updated_at: "2026-06-07T16:33:08Z"
+updated_by: "claude (phase-1-mvp design hardening)"

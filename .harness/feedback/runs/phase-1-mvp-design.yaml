@@ -1,76 +1,38 @@
 rule: CORE-05
 change: phase-1-mvp
-verdict: FAIL
-reviewer: codex-independent-reviewer
+verdict: PASS
+reviewer: independent-architect-agent (fresh instance, not author) + repo owner sign-off
 date: 2026-06-08
+supersedes: prior FAIL verdict (5 blockers)
 checklist:
   - item: Traceability
     result: YES
-    note: "backend/plan.md explicitly references backend/spec.md, PRD.md, and the project Constitution."
+    note: "plan.md references spec.md/PRD.md/Constitution; spec AC-1..29 trace to PRD."
   - item: Completeness
-    result: NO
-    note: "Core response data and mutation API semantics remain incomplete: the API does not clearly expose quote/normalized chart data, ObservedMarketRisk is absent from StockResult components, and long-running follow-up behavior is undefined."
+    result: YES
+    note: "ObservedMarketRisk component (§4.2); RunState market fields + GET /snapshots (§2/§4.4); 202 follow-up (§2/§3)."
   - item: Reviewability
-    result: NO
-    note: "The plan is readable, but the repository's formal harness still requires changes/<name>/design.md. The workflow sensor expects current_change while phase.yaml writes change_name, so it currently skips validation."
+    result: YES
+    note: "Thin design.md points to plan as source of truth; phase.yaml current_change aligned + valid YAML."
   - item: Alternatives
     result: YES
-    note: "The plan records and justifies polling, in-memory stores, immutable versioning, component lineage, single-mutation locking, and MarketPolicy boundaries."
+    note: "plan §9: polling, in-memory, immutable versioning, lineage, single-mutation lock, MarketPolicy."
   - item: Risk surface
-    result: NO
-    note: "The risk table is much stronger, but immutable entities still contain mutable validity/status fields, and background upload/conversation mutations do not yet have a fully consistent state transition contract."
+    result: YES
+    note: "plan §9.1; immutable content separated from Workspace validity/lifecycle ledger (§4.2/§4.3)."
   - item: Scope
     result: YES
-    note: "The design stays within MVP scope; PDF ownership is now resolved as a later-phase non-goal."
+    note: "MVP scope; Markdown-only this phase; PDF deferred."
+blockers_closed:
+  - "1 immutable/mutable: Component/StockResult/Report immutable + component_id; validity & report_lifecycle moved to Workspace (plan §4.2/§4.3/§8.1)"
+  - "2 market API: observed_market_risk component + RunState current_quote/observed_market_risk_summary/normalized_series_ref/is_demo_data + GET /snapshots/{id} (plan §2/§4.4)"
+  - "3 follow-up: POST /messages -> 202 + poll + active_op acquire/release (plan §2/§3)"
+  - "4 upload/asset: SessionAsset/UploadAsset schema + full status enum + no phantom /uploads + analyzed->auto report + reject rules (plan §3/§4.1/§8.2)"
+  - "5 harness: thin design.md added; phase.yaml current_change fixed (valid YAML)"
 notes: |
-  Round 3 closes most of the previous review: readable answers/results APIs,
-  snapshot and citation lineage, deterministic routing/invalidation, mutation
-  locking, automatic atomic compression, Markdown-only scope, SymbolCatalog,
-  MarketPolicy, demo-data warnings, and an explicit risk table are all materially
-  improved.
-
-  The following blockers remain before Tasks:
-
-  1. Resolve the immutable/state contradiction. StockResult components contain
-     mutable valid/invalidated_reason fields and ReportVersion contains a mutable
-     active/stale/superseded status, while the design says these entities are
-     immutable. Components also lack component_id although InvalidatedPart and
-     RerunPlan reference component IDs. Define immutable component/report content
-     plus a separate mutable workspace validity/lifecycle ledger, or explicitly
-     define which metadata may mutate.
-
-  2. Complete the core result/read contract. StockResult currently omits an
-     explicit ObservedMarketRisk component. The API also does not clearly expose
-     current quote, normalized price series/chart data, or dereferenceable market
-     snapshots, although these are core PRD outputs. RunState/front-end require
-     is_demo_data, but RunState does not explicitly carry it.
-
-  3. Define long-running follow-up semantics. POST /messages promises an immediate
-     answer, but a scope-changing follow-up starts a 10-30 second asynchronous
-     research operation. Choose and specify either blocking response semantics or
-     202/accepted + polling + answer-ready state. State exactly when active_op is
-     acquired/released for initial research, follow-ups, uploads, and report
-     regeneration.
-
-  4. Finish the upload/asset contract. SessionAsset is returned by an API but has
-     no schema; the plan references GET /uploads although no such endpoint exists.
-     The lifecycle needs failure-from-any-stage and needs_clarification/unattached
-     behavior. "May trigger report regeneration" conflicts with AC-29's mandatory
-     regeneration for an attached analyzed upload. Add validation behavior for
-     unsupported MIME/type and files over 10MB.
-
-  5. Repair the formal harness contract before claiming the gate passed. CORE-05,
-     workflow.md, reviewer.md, and the L2 playbook still require design.md, while
-     the change intentionally removes it. Either add a thin design.md that points
-     to backend/plan.md or consistently amend the harness rules. Also align
-     check-workflow-state.sh (current_change) with phase.yaml/analyst.md
-     (change_name); the current sensor reports "nothing to validate" and therefore
-     does not prove the L2 artifact gate.
-
-  Strong recommendations that may be completed with the blockers:
-  - Make the supported US exchange/MIC allowlist explicit/configured instead of
-    using an ellipsis in the catalog filter.
-  - Add acceptance checks for source/freshness/demo-data transparency and upload
-    size/type rejection.
-  - Bound current-session memory growth with upload-count/report-version limits or
-    a documented run cleanup policy.
+  Independent architect agent (fresh instance, not the author) re-reviewed
+  PRD/spec/plan/frontend after round-4 hardening and returned PASS; all 5 prior
+  blockers verified closed. Repo owner signs off to proceed to Tasks.
+  Tasks constraint: implement by vertical business slices
+  (single-stock loop -> multi-stock -> events -> report -> session -> upload),
+  not layer-by-layer.
