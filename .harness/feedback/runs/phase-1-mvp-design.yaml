@@ -1,0 +1,61 @@
+rule: CORE-05
+change: phase-1-mvp
+verdict: FAIL
+reviewer: codex-independent-reviewer
+date: 2026-06-07
+checklist:
+  - item: Traceability
+    result: YES
+    note: "backend/plan.md explicitly references backend/spec.md and PRD.md."
+  - item: Completeness
+    result: NO
+    note: "Several core user-visible flows still lack executable contracts: follow-up answers and result retrieval, immutable provenance/version bindings, upload processing lifecycle, and the PRD PDF deliverable."
+  - item: Reviewability
+    result: NO
+    note: "The approach is readable, but the L2-required design.md artifact is absent and the workflow state remains idle, so the repository's formal design gate cannot be completed."
+  - item: Alternatives
+    result: YES
+    note: "The plan records meaningful choices such as polling over SSE, in-memory session state, provider interfaces, and deterministic calculations."
+  - item: Risk surface
+    result: NO
+    note: "The plan does not define mitigations for concurrent session mutations, failed conversation compression, untrusted upload limits, or unbounded in-memory assets/report versions."
+  - item: Scope
+    result: YES
+    note: "The proposed implementation stays within the stated MVP non-goals; future-market extensibility is discussed but not added to current scope."
+notes: |
+  The round-2 additions materially improve the design, especially the invalidation
+  matrix, report-version API, LLM/code boundary, and structured-state compression
+  rule. The following gaps must be closed before Tasks:
+
+  1. Define an API-readable conversation/result contract. POST /messages returns
+     RunState, but RunState has no assistant answer/messages; stock results and
+     comparison are exposed only as IDs with no retrieval endpoints.
+  2. Make lineage immutable and dereferenceable. Define snapshot/store schemas,
+     bind Comparison and Report versions to scope_version and source result IDs,
+     and replace the coarse StockResult.valid flag with component-level lineage
+     or immutable merged result versions for partial reruns.
+  3. Harden citations. CitationSpan needs an owning asset/reference, uploaded
+     page/chunk locators, and explicit links from events/business risks/report
+     claims to evidence. A singular event_search_snapshot_id is insufficient
+     when up to three moves may be researched.
+  4. Define serialized mutation behavior and lifecycle for follow-ups/uploads:
+     what happens while a run is active, how upload processing updates status,
+     how races are prevented, and when a new report version becomes active.
+  5. Make Followup Router and invalidation decisions fully deterministic:
+     specify RerunPlan fields/precedence and remove matrix ambiguity such as
+     "视情况" and optional report-version behavior.
+  6. Define automatic compression trigger and failure safety, not only a manual
+     compression test. Raw messages must be deleted only after a successful,
+     atomic summary update.
+  7. Resolve requirement ownership conflicts: PRD requires PDF + Markdown while
+     backend spec makes PDF a non-goal and frontend does not own PDF generation.
+     Also define the concrete SymbolCatalog source/cache path needed for arbitrary
+     supported US-listed stocks.
+  8. Add an explicit risk/mitigation section and acceptance coverage for the
+     remaining PRD boundary cases, including upload size/type failures and source
+     timestamp transparency.
+
+  Formal process gap: phase-1-mvp/design.md is absent and state/phase.yaml is
+  idle. Either create the required design artifact (it may reference the backend
+  plan) and enter the design phase, or explicitly revise the harness contract to
+  recognize backend/plan.md as the design artifact.

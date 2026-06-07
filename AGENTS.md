@@ -60,7 +60,7 @@
 
 | 阶段 | 文档 | 内容 |
 |---|---|---|
-| **Constitution** | `.harness/rules/core/` + `PRD.md §2` | 根本大法：工程规则 + 产品原则（不可违背） |
+| **Constitution** | `.harness/constitution.md`（+ `rules/core/` 工程规则、`PRD.md §2` 产品原则）| 根本大法：质量标准、技术约束、明确禁止（不可违背） |
 | **Specify** | `spec.md` | 做什么：用户故事 + 验收标准 |
 | **Plan** | `plan.md` | 怎么做：架构、API、数据模型、技术选型 |
 | **Tasks** | `tasks.md` | 原子任务 + 依赖（**Plan 通过后**产出） |
