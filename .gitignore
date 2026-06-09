@@ -1,0 +1,30 @@
+# Local tooling state (not part of the project)
+.omc/
+.omx/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Env / secrets
+.env
+.env.local
+*.local
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Logs / generated
+*.log
+
+# Generated report charts (runtime output, not source)
+backend/_reports/
+
+# Internal workflow / agent files (kept local, not published)
+CLAUDE.md

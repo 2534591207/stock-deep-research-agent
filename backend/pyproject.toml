@@ -1,0 +1,10 @@
+[project]
+name = "equity-research-agent-backend"
+version = "0.1.0"
+description = "U.S.-listed Equity Research Agent — backend (phase-1-mvp)"
+requires-python = ">=3.9"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+asyncio_mode = "auto"

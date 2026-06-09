@@ -1,0 +1,10 @@
+# .harness/state/phase.yaml
+# Tracks the current workflow phase. Updated by agents as work progresses.
+# Valid phases: idle | classify | prd | design | build | verify | close
+
+phase: "design"
+tier: "L2"
+change_name: "phase-1-mvp"
+current_change: "phase-1-mvp"
+updated_at: "2026-06-08T00:00:00Z"
+updated_by: "maintainer"

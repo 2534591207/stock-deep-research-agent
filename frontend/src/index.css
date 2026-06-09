@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-ink-900 text-slate-200 antialiased;
+    font-family: theme('fontFamily.sans');
+  }
+
+  /* Bespoke scrollbar treatment for the dark surfaces */
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: #2a3441;
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: #3a475a;
+    background-clip: padding-box;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Rich-text (Markdown) typography — scoped to .rich so chat bubbles    */
+/* and the report viewer share one readable presentation.              */
+/* ------------------------------------------------------------------ */
+@layer components {
+  .rich {
+    @apply text-[0.95rem] leading-relaxed text-slate-200;
+  }
+  .rich > *:first-child {
+    @apply mt-0;
+  }
+  .rich > *:last-child {
+    @apply mb-0;
+  }
+  .rich h1 {
+    @apply mt-6 mb-3 border-b border-slate-line/70 pb-1.5 text-xl font-semibold text-slate-50;
+  }
+  .rich h2 {
+    @apply mt-5 mb-2.5 text-lg font-semibold text-slate-100;
+  }
+  .rich h3 {
+    @apply mt-4 mb-2 text-base font-semibold text-slate-100;
+  }
+  .rich h4 {
+    @apply mt-3 mb-1.5 text-sm font-semibold uppercase tracking-wide text-slate-400;
+  }
+  .rich p {
+    @apply my-2.5;
+  }
+  .rich a {
+    @apply text-accent underline decoration-accent/40 underline-offset-2 hover:decoration-accent;
+  }
+  .rich strong {
+    @apply font-semibold text-slate-50;
+  }
+  .rich em {
+    @apply italic text-slate-300;
+  }
+  .rich ul {
+    @apply my-2.5 list-disc space-y-1 pl-5 marker:text-slate-500;
+  }
+  .rich ol {
+    @apply my-2.5 list-decimal space-y-1 pl-5 marker:text-slate-500;
+  }
+  .rich li {
+    @apply leading-relaxed;
+  }
+  .rich li > ul,
+  .rich li > ol {
+    @apply my-1;
+  }
+  .rich blockquote {
+    @apply my-3 border-l-2 border-caution/60 bg-caution/5 px-3.5 py-2 italic text-slate-300;
+  }
+  .rich code {
+    @apply rounded bg-ink-600 px-1.5 py-0.5 font-mono text-[0.85em] text-accent;
+  }
+  .rich pre {
+    @apply my-3 overflow-x-auto rounded-lg border border-slate-line/60 bg-ink-900 p-3.5 text-[0.85rem] leading-relaxed;
+  }
+  .rich pre code {
+    @apply bg-transparent p-0 text-slate-200;
+  }
+  .rich hr {
+    @apply my-6 border-0 border-t border-slate-line/70;
+  }
+  .rich table {
+    @apply my-3 block w-full overflow-x-auto border-collapse text-sm;
+  }
+  .rich thead {
+    @apply border-b border-slate-line;
+  }
+  .rich th {
+    @apply whitespace-nowrap px-3 py-2 text-left font-semibold text-slate-200;
+  }
+  .rich td {
+    @apply border-t border-slate-line/50 px-3 py-2 align-top text-slate-300;
+  }
+  .rich tbody tr:hover {
+    @apply bg-ink-700/40;
+  }
+  .rich img {
+    @apply my-3 max-w-full rounded-lg border border-slate-line/60;
+  }
+}

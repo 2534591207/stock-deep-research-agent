@@ -1,0 +1,15 @@
+{
+  "version": "fixture-v1",
+  "entries": [
+    {"name": "NVIDIA Corporation", "symbol": "NVDA", "exchange": "NASDAQ", "country": "United States", "type": "Common Stock"},
+    {"name": "Alibaba Group Holding Limited", "symbol": "BABA", "exchange": "NYSE", "country": "United States", "type": "ADR"},
+    {"name": "Intel Corporation", "symbol": "INTC", "exchange": "NASDAQ", "country": "United States", "type": "Common Stock"},
+    {"name": "Microsoft Corporation", "symbol": "MSFT", "exchange": "NASDAQ", "country": "United States", "type": "Common Stock"},
+    {"name": "Amazon.com Inc", "symbol": "AMZN", "exchange": "NASDAQ", "country": "United States", "type": "Common Stock"},
+    {"name": "Advanced Micro Devices Inc", "symbol": "AMD", "exchange": "NASDAQ", "country": "United States", "type": "Common Stock"},
+    {"name": "Salesforce Inc", "symbol": "CRM", "exchange": "NYSE", "country": "United States", "type": "Common Stock"},
+    {"name": "Costco Wholesale Corporation", "symbol": "COST", "exchange": "NASDAQ", "country": "United States", "type": "Common Stock"},
+    {"name": "Some OTC Pink Co", "symbol": "OTCX", "exchange": "OTC", "country": "United States", "type": "Common Stock"},
+    {"name": "Tencent Holdings", "symbol": "0700", "exchange": "HKEX", "country": "China", "type": "Common Stock"}
+  ]
+}
